@@ -152,7 +152,7 @@
 
         /* --- Modal (Course Details) --- */
         .modal-overlay {
-            display: none; /* Hidden by default */
+            display: none; 
             position: fixed;
             top: 0;
             left: 0;
@@ -340,14 +340,14 @@
 
     <script>
         // --- Image Library ---
-        // Replace these URLs with the files downloaded from your Panda Express PR link if desired!
+        // All URLs updated to reliable sources
         const img = {
             wok: "https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&q=80&w=800",
-            chicken: "https://upload.wikimedia.org/wikipedia/commons/2/22/Panda_Express_Orange_Chicken_with_Bacon_%2814079651854%29.jpg", // Verified Panda Express Orange Chicken image
+            chicken: "https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&q=80&w=800", // Updated: Asian glazed chicken
             counter: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800", 
             steam: "https://images.unsplash.com/photo-1590311825124-73ec5233cb0a?auto=format&fit=crop&q=80&w=800", 
             safety: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=800", 
-            journey: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Panda_Express_logo.svg/800px-Panda_Express_logo.svg.png", // Verified Panda Logo
+            journey: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&q=80&w=800", // Updated: Team/culture focus
             inventory: "https://images.unsplash.com/photo-1586880244406-556ebe35f282?auto=format&fit=crop&q=80&w=800", 
             leadership: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800", 
             culture: "https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&q=80&w=800", 
@@ -379,7 +379,7 @@
         function renderGrid() {
             const grid = document.getElementById('courseGrid');
             const heading = document.getElementById('gridHeading');
-            grid.innerHTML = ''; // Clear previous grid content
+            grid.innerHTML = ''; 
 
             if (activeTab === 'your') {
                 heading.textContent = 'Your courses';
@@ -393,7 +393,6 @@
                 const statusClass = course.isOverdue ? 'status-overdue' : 'status-due';
                 const badgeHtml = course.inProgress ? `<div class="badge">In progress</div>` : '';
                 
-                // Injecting proper background image URL
                 const card = document.createElement('div');
                 card.className = 'course-card';
                 card.onclick = () => openModal(course.id);
