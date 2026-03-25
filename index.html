@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learning Widget</title>
+    <title>Panda Express Learning Widget</title>
     <style>
         :root {
             --primary-font: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             --text-main: #202124;
             --text-secondary: #5f6368;
             --danger-red: #c5221f;
-            --btn-red: #d2232a; /* Closer to Panda Express red */
+            --btn-red: #d2232a; /* Panda Express Red */
+            --accent-red: #d2232a; 
             --border-color: #dadce0;
             --bg-hover: #f1f3f4;
+            --badge-bg: rgba(32, 33, 36, 0.8);
         }
 
         * {
@@ -41,11 +43,16 @@
             font-weight: 600;
             cursor: pointer;
             color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text-main);
         }
 
         .tab.active {
             color: var(--text-main);
-            border-bottom: 2px solid var(--text-main);
+            border-bottom: 2px solid var(--accent-red);
         }
 
         /* --- Header --- */
@@ -96,20 +103,16 @@
             overflow: hidden;
             margin-bottom: 12px;
             position: relative;
-            background-color: #e0e0e0;
-        }
-
-        .card-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            background-color: #e0e0e0; /* Fallback */
+            background-size: cover;
+            background-position: center;
         }
 
         .badge {
             position: absolute;
             top: 8px;
             left: 8px;
-            background-color: rgba(32, 33, 36, 0.8);
+            background-color: var(--badge-bg);
             color: white;
             font-size: 12px;
             font-weight: 600;
@@ -147,9 +150,9 @@
         .status-overdue { color: var(--danger-red); }
         .status-due { color: var(--text-secondary); }
 
-        /* --- Modal --- */
+        /* --- Modal (Course Details) --- */
         .modal-overlay {
-            display: none;
+            display: none; /* Hidden by default */
             position: fixed;
             top: 0;
             left: 0;
@@ -159,6 +162,13 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
         }
 
         .modal-content {
@@ -171,12 +181,12 @@
             max-height: 90vh;
             box-shadow: 0 4px 24px rgba(0,0,0,0.2);
             position: relative;
-            animation: slideUp 0.3s ease-out;
+            transform: translateY(20px);
+            transition: transform 0.3s ease-out;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
         }
 
         .modal-header {
@@ -209,9 +219,10 @@
             width: 100%;
             height: 160px;
             border-radius: 8px;
-            object-fit: cover;
-            margin-bottom: 20px;
             background-color: #e0e0e0;
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 20px;
         }
 
         .modal-title {
@@ -293,23 +304,23 @@
 <body>
 
     <div class="tabs">
-        <div class="tab active">Your Courses</div>
-        <div class="tab">Recommended</div>
+        <div class="tab active" onclick="switchTab('your')" id="tabYour">Your Courses</div>
+        <div class="tab" onclick="switchTab('recommended')" id="tabRecommended">Recommended</div>
     </div>
 
     <div class="header-actions">
-        <h2>Your courses</h2>
+        <h2 id="gridHeading">Your courses</h2>
         <div class="filter">Filter <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
     </div>
 
     <div class="course-grid" id="courseGrid">
         </div>
 
-    <div class="modal-overlay" id="courseModal" onclick="closeModal(event)">
-        <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-overlay" id="courseModal">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>Course Details</h3>
-                <button class="close-btn" onclick="closeModal(null, true)">✕</button>
+                <button class="close-btn" onclick="closeModal()">✕</button>
             </div>
             <div class="modal-body">
                 <div id="modalHero" class="modal-hero"></div>
@@ -329,165 +340,119 @@
     </div>
 
     <script>
-        // Store-specific content tailored for Panda Express
-        const courses = [
-            {
-                id: 1,
-                title: "Wok Safety & Maintenance",
-                icon: "🎧",
-                type: "Online",
-                duration: "2 hrs",
-                statusText: "Overdue Feb 15, 2026",
-                isOverdue: true,
-                inProgress: true,
-                gradient: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)",
-                desc: "Essential safety protocols for operating and maintaining the wok station during peak hours.",
-                bullets: [
-                    "Fire suppression systems and emergency shutoffs",
-                    "Proper oil temperature management",
-                    "Ergonomic lifting and tossing techniques",
-                    "End-of-shift cleaning procedures"
-                ],
-                relevant: "Relevant for Back of House (BOH) staff."
-            },
-            {
-                id: 2,
-                title: "Guest Love: The Front Counter",
-                icon: "📹",
-                type: "Video",
-                duration: "1 hr",
-                statusText: "Overdue Feb 10, 2026",
-                isOverdue: true,
-                inProgress: false,
-                gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)",
-                desc: "Creating a welcoming environment for every guest that walks through our doors.",
-                bullets: [
-                    "The Panda Express greeting standards",
-                    "Proper sampling procedures for new entrees",
-                    "Handling guest complaints gracefully",
-                    "Upselling premium items (e.g., Honey Walnut Shrimp)"
-                ],
-                relevant: "Relevant for Front of House (FOH) staff."
-            },
-            {
-                id: 3,
-                title: "Drive-Thru Efficiency",
-                icon: "🎧",
-                type: "Online",
-                duration: "2 hrs",
-                statusText: "Overdue Feb 28, 2026",
-                isOverdue: true,
-                inProgress: true,
-                gradient: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
-                desc: "Mastering the headset and register to keep the drive-thru lane moving fast and accurately.",
-                bullets: [
-                    "Active listening and order confirmation",
-                    "Managing wait times and parking guests",
-                    "Packaging standards for large family meals"
-                ],
-                relevant: "Relevant for Drive-Thru Operators and FOH."
-            },
-            {
-                id: 4,
-                title: "Steam Table Management",
-                icon: "📍",
-                type: "Event",
-                duration: "3 hrs",
-                statusText: "Mar 05, 2026",
-                isOverdue: false,
-                inProgress: false,
-                gradient: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
-                desc: "Keeping the steam table fresh, visually appealing, and properly stocked.",
-                bullets: [
-                    "Calling food orders to BOH proactively",
-                    "Temperature checks and logging",
-                    "Portion control for plates and bowls",
-                    "Stirring techniques to maintain quality"
-                ],
-                relevant: "Relevant for all FOH shift leads."
-            },
-            {
-                id: 5,
-                title: "Food Safety & Handling",
-                icon: "📊",
-                type: "Curriculum",
-                duration: "4 hrs",
-                statusText: "Due in 8 days",
-                isOverdue: false,
-                inProgress: false,
-                gradient: "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)",
-                desc: "Comprehensive guide to food safety compliance in a high-volume kitchen.",
-                bullets: [
-                    "Cross-contamination prevention",
-                    "Proper raw chicken handling",
-                    "Date marking and FIFO (First In, First Out)",
-                    "Health inspector readiness"
-                ],
-                relevant: "Relevant for all staff members."
-            },
-            {
-                id: 6,
-                title: "Orange Chicken Preparation",
-                icon: "🎧",
-                type: "Online",
-                duration: "1 hr 30 mins",
-                statusText: "Overdue Mar 01, 2026",
-                isOverdue: true,
-                inProgress: true,
-                gradient: "linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)",
-                desc: "The exact recipe and technique behind our signature Original Orange Chicken.",
-                bullets: [
-                    "Batter consistency and frying times",
-                    "Creating the perfect sauce glaze",
-                    "Wok folding technique to coat without breaking",
-                    "Holding times for optimal crunch"
-                ],
-                relevant: "Relevant for BOH Cooks."
-            }
+        // Store-specific content tailored for Panda Express frontline employees
+
+        // -- Images (represented as gradients for self-containment, but structures for URLs) --
+        const img = {
+            wok: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)", // Wok station
+            chicken: "linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)", // Orange Chicken
+            counter: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)", // Guest greeting
+            steam: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)", // Steam table
+            safety: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", // Generic Safety
+            journey: "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)", // Career
+            inventory: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", // Back of House
+            leadership: "linear-gradient(135deg, #5ee7df 0%, #b490ca 100%)", // Team Lead
+            culture: "linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%)", // Diversity
+            catering: "linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%)" // Catering set
+        }
+
+        // --- Data Arrays ---
+        const yourCourses = [
+            { id: 1, title: "Wok Station Safety", icon: "🔥", type: "Online", du: "2 hrs", statusText: "Overdue Feb 15, 2026", isOverdue: true, inProgress: true, img: img.wok, desc: "Essential safety protocols for operating and maintaining the wok station during peak hours.", bullets: ["Fire suppression systems and emergency shutoffs", "Proper oil temperature management", "Ergonomic lifting and tossing techniques", "End-of-shift cleaning procedures"], relevant: "Relevant for BOH Cooks." },
+            { id: 2, title: "Orange Chicken Mastery", icon: "📹", type: "Video", du: "1 hr", statusText: "Overdue Feb 10, 2026", isOverdue: true, inProgress: false, img: img.chicken, desc: "The exact recipe and technique behind our signature Original Orange Chicken.", bullets: ["Batter consistency and frying times", "Creating the perfect sauce glaze", "Wok folding technique to coat without breaking", "Holding times for optimal crunch"], relevant: "Relevant for BOH Cooks." },
+            { id: 3, title: "Advanced Guest Hospitality", icon: "🎧", type: "Online", du: "2 hrs", statusText: "Overdue Feb 28, 2026", isOverdue: true, inProgress: true, img: img.counter, desc: "Creating a welcoming environment and ensuring Guest Love in every interaction.", bullets: ["The Panda Express greeting standards", "Proper sampling procedures for new entrees", "Handling guest complaints gracefully"], relevant: "Relevant for FOH Staff." },
+            { id: 4, title: "Steam Table Management", icon: "📍", type: "Event", du: "3 hrs", statusText: "Mar 05, 2026", isOverdue: false, inProgress: false, img: img.steam, desc: "Maintaining freshness, visual appeal, and quality standards on the steam table.", bullets: ["Proactive food ordering to BOH", "Temperature checks and logging", "Portion control techniques", "Stirring schedules to prevent drying"], relevant: "Relevant for FOH Shift Leads." },
+            { id: 5, title: "Food Safety Compliance", icon: "📊", type: "Curriculum", du: "4 hrs", statusText: "Due in 8 days", isOverdue: false, inProgress: false, img: img.safety, desc: "Comprehensive food safety standards for a high-volume restaurant.", bullets: ["Cross-contamination prevention", "Proper chicken handling", "FIFO (First In, First Out) standards", "Date marking requirements"], relevant: "Relevant for all staff." },
+            { id: 6, title: "The Panda Journey", icon: "🎧", type: "Online", du: "1 hr", statusText: "Overdue Mar 01, 2026", isOverdue: true, inProgress: false, img: img.journey, desc: "Introduction to Panda Express culture, values, and career growth opportunities.", bullets: ["Our mission and 'Panda Way'", "Founders' story", "Understanding your career path"], relevant: "Relevant for all new hires." }
         ];
 
-        // Generate Grid
-        const grid = document.getElementById('courseGrid');
+        const recommendedCourses = [
+            { id: 7, title: "BOH Inventory Best Practices", icon: "📋", type: "Online", du: "2 hrs", statusText: "Available", isOverdue: false, inProgress: false, img: img.inventory, desc: "Optimizing inventory management to reduce waste and ensure stock availability.", bullets: ["Effective ordering schedules", "Minimizing food waste", "Organizing the cooler and dry storage"], relevant: "Relevant for BOH Leads." },
+            { id: 8, title: "Shift Leadership Fundamentals", icon: "📹", type: "Video", du: "1 hr", statusText: "Available", isOverdue: false, inProgress: false, img: img.leadership, desc: "Essential skills for transitioning into a leadership role within the store.", bullets: ["Effective communication with BOH and FOH", "Task delegation", "Managing peak-hour workflow"], relevant: "Recommended for potential Shift Leads." },
+            { id: 9, title: "Guest Experience & Cultural Awareness", icon: "🎧", type: "Online", du: "2 hrs", statusText: "Available", isOverdue: false, inProgress: false, img: img.culture, desc: "Enhancing guest connections and understanding diverse guest needs.", bullets: ["Recognizing cultural nuances in service", "Active listening techniques", "Creating memorable guest moments"], relevant: "Recommended for all FOH staff." },
+            { id: 10, title: "Catering Execution Standards", icon: "📍", type: "Event", du: "1 hr", statusText: "Available", isOverdue: false, inProgress: false, img: img.catering, desc: "The process for preparing, assembling, and delivering successful catering orders.", bullets: ["Large order packaging standards", "Confirming order accuracy", "Setting up on-site displays"], relevant: "Recommended for all staff." }
+        ];
 
-        courses.forEach(course => {
-            const statusClass = course.isOverdue ? 'status-overdue' : 'status-due';
-            const badgeHtml = course.inProgress ? `<div class="badge">In progress</div>` : '';
-            
-            const card = document.createElement('div');
-            card.className = 'course-card';
-            card.onclick = () => openModal(course.id);
-            
-            card.innerHTML = `
-                <div class="card-img-container" style="background: ${course.gradient};">
-                    ${badgeHtml}
-                </div>
-                <div class="card-title">${course.title}</div>
-                <div class="card-meta">
-                    ${course.icon} ${course.type} • ${course.duration}
-                </div>
-                <div class="card-status ${statusClass}">${course.statusText}</div>
-            `;
-            
-            grid.appendChild(card);
-        });
+        let activeTab = 'your';
+        let currentCourseList = yourCourses;
 
-        // Modal Logic
+        // --- Functions ---
+
+        function renderGrid() {
+            const grid = document.getElementById('courseGrid');
+            const heading = document.getElementById('gridHeading');
+            grid.innerHTML = ''; // Clear previous grid content
+
+            if (activeTab === 'your') {
+                heading.textContent = 'Your courses';
+                currentCourseList = yourCourses;
+            } else {
+                heading.textContent = 'Recommended for Development';
+                currentCourseList = recommendedCourses;
+            }
+
+            currentCourseList.forEach(course => {
+                const statusClass = course.isOverdue ? 'status-overdue' : 'status-due';
+                const badgeHtml = course.inProgress ? `<div class="badge">In progress</div>` : '';
+                
+                const card = document.createElement('div');
+                card.className = 'course-card';
+                card.onclick = () => openModal(course.id);
+                
+                card.innerHTML = `
+                    <div class="card-img-container" style="background: ${course.img};">
+                        ${badgeHtml}
+                    </div>
+                    <div class="card-title">${course.title}</div>
+                    <div class="card-meta">
+                        ${course.icon} ${course.type} • ${course.du}
+                    </div>
+                    <div class="card-status ${statusClass}">${course.statusText}</div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function switchTab(tab) {
+            if (activeTab === tab) return; // Ignore clicks on the active tab
+
+            activeTab = tab;
+
+            // Update tab styling
+            document.getElementById('tabYour').classList.remove('active');
+            document.getElementById('tabRecommended').classList.remove('active');
+
+            if (activeTab === 'your') {
+                document.getElementById('tabYour').classList.add('active');
+            } else {
+                document.getElementById('tabRecommended').classList.add('active');
+            }
+
+            renderGrid();
+        }
+
+        // Modal (Course Details) Logic
         const modal = document.getElementById('courseModal');
 
         function openModal(id) {
-            const course = courses.find(c => c.id === id);
+            const course = currentCourseList.find(c => c.id === id);
             if (!course) return;
 
-            // Populate data
-            document.getElementById('modalHero').style.background = course.gradient;
+            // Populate modal data
+            document.getElementById('modalHero').style.background = course.img;
             document.getElementById('modalTitle').textContent = course.title;
-            document.getElementById('modalMeta').innerHTML = `${course.icon} ${course.type} • ${course.duration} • <span class="${course.isOverdue ? 'status-overdue' : 'status-due'}">${course.statusText}</span>`;
+            
+            // Reconstruct meta-info in modal with overdue color
+            const statusClass = course.isOverdue ? 'status-overdue' : 'status-due';
+            document.getElementById('modalMeta').innerHTML = `${course.icon} ${course.type} • ${course.du} • <span class="${statusClass}">${course.statusText}</span>`;
+            
             document.getElementById('modalDesc').textContent = course.desc;
             document.getElementById('modalRelevant').textContent = course.relevant;
 
             // Populate bullets
             const ul = document.getElementById('modalList');
-            ul.innerHTML = '';
+            ul.innerHTML = ''; // Clear old bullets
             course.bullets.forEach(bullet => {
                 const li = document.createElement('li');
                 li.textContent = bullet;
@@ -496,13 +461,24 @@
 
             // Show modal
             modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10); // Trigger transition
         }
 
-        function closeModal(event, force = false) {
-            if (force || event.target === modal) {
-                modal.style.display = 'none';
-            }
+        function closeModal() {
+            modal.classList.remove('show');
+            setTimeout(() => modal.style.display = 'none', 300); // Hide after transition
         }
+
+        // Close modal when clicking on the overlay
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Initialize the view
+        renderGrid();
+
     </script>
 </body>
 </html>
