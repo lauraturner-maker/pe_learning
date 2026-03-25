@@ -14,7 +14,7 @@
             --accent-red: #d2232a; 
             --border-color: #dadce0;
             --bg-hover: #f1f3f4;
-            --badge-bg: rgba(32, 33, 36, 0.8);
+            --badge-bg: rgba(32, 33, 36, 0.85);
         }
 
         * {
@@ -103,9 +103,8 @@
             overflow: hidden;
             margin-bottom: 12px;
             position: relative;
-            background-color: #e0e0e0; /* Fallback */
-            background-size: cover;
-            background-position: center;
+            background-color: #f1f3f4; /* Fallback */
+            border: 1px solid #eaeaea;
         }
 
         .badge {
@@ -118,6 +117,7 @@
             font-weight: 600;
             padding: 4px 10px;
             border-radius: 12px;
+            z-index: 2;
         }
 
         .card-title {
@@ -158,7 +158,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.6);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -217,12 +217,11 @@
 
         .modal-hero {
             width: 100%;
-            height: 160px;
+            height: 180px;
             border-radius: 8px;
-            background-color: #e0e0e0;
-            background-size: cover;
-            background-position: center;
+            background-color: #f1f3f4;
             margin-bottom: 20px;
+            border: 1px solid #eaeaea;
         }
 
         .modal-title {
@@ -340,20 +339,19 @@
     </div>
 
     <script>
-        // Store-specific content tailored for Panda Express frontline employees
-
-        // -- Images (represented as gradients for self-containment, but structures for URLs) --
+        // --- Image Library ---
+        // Replace these URLs with the files downloaded from your Panda Express PR link if desired!
         const img = {
-            wok: "linear-gradient(135deg, #f6d365 0%, #fda085 100%)", // Wok station
-            chicken: "linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)", // Orange Chicken
-            counter: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)", // Guest greeting
-            steam: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)", // Steam table
-            safety: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)", // Generic Safety
-            journey: "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)", // Career
-            inventory: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", // Back of House
-            leadership: "linear-gradient(135deg, #5ee7df 0%, #b490ca 100%)", // Team Lead
-            culture: "linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%)", // Diversity
-            catering: "linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%)" // Catering set
+            wok: "https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&q=80&w=800",
+            chicken: "https://upload.wikimedia.org/wikipedia/commons/2/22/Panda_Express_Orange_Chicken_with_Bacon_%2814079651854%29.jpg", // Verified Panda Express Orange Chicken image
+            counter: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800", 
+            steam: "https://images.unsplash.com/photo-1590311825124-73ec5233cb0a?auto=format&fit=crop&q=80&w=800", 
+            safety: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=800", 
+            journey: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Panda_Express_logo.svg/800px-Panda_Express_logo.svg.png", // Verified Panda Logo
+            inventory: "https://images.unsplash.com/photo-1586880244406-556ebe35f282?auto=format&fit=crop&q=80&w=800", 
+            leadership: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800", 
+            culture: "https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&q=80&w=800", 
+            catering: "https://images.unsplash.com/photo-1555244162-803834f70033?auto=format&fit=crop&q=80&w=800"
         }
 
         // --- Data Arrays ---
@@ -395,12 +393,13 @@
                 const statusClass = course.isOverdue ? 'status-overdue' : 'status-due';
                 const badgeHtml = course.inProgress ? `<div class="badge">In progress</div>` : '';
                 
+                // Injecting proper background image URL
                 const card = document.createElement('div');
                 card.className = 'course-card';
                 card.onclick = () => openModal(course.id);
                 
                 card.innerHTML = `
-                    <div class="card-img-container" style="background: ${course.img};">
+                    <div class="card-img-container" style="background: url('${course.img}') center/cover no-repeat;">
                         ${badgeHtml}
                     </div>
                     <div class="card-title">${course.title}</div>
@@ -415,11 +414,10 @@
         }
 
         function switchTab(tab) {
-            if (activeTab === tab) return; // Ignore clicks on the active tab
+            if (activeTab === tab) return;
 
             activeTab = tab;
 
-            // Update tab styling
             document.getElementById('tabYour').classList.remove('active');
             document.getElementById('tabRecommended').classList.remove('active');
 
@@ -439,44 +437,40 @@
             const course = currentCourseList.find(c => c.id === id);
             if (!course) return;
 
-            // Populate modal data
-            document.getElementById('modalHero').style.background = course.img;
+            // Populate modal data using URL background
+            document.getElementById('modalHero').style.background = `url('${course.img}') center/cover no-repeat`;
             document.getElementById('modalTitle').textContent = course.title;
             
-            // Reconstruct meta-info in modal with overdue color
             const statusClass = course.isOverdue ? 'status-overdue' : 'status-due';
             document.getElementById('modalMeta').innerHTML = `${course.icon} ${course.type} • ${course.du} • <span class="${statusClass}">${course.statusText}</span>`;
             
             document.getElementById('modalDesc').textContent = course.desc;
             document.getElementById('modalRelevant').textContent = course.relevant;
 
-            // Populate bullets
             const ul = document.getElementById('modalList');
-            ul.innerHTML = ''; // Clear old bullets
+            ul.innerHTML = ''; 
             course.bullets.forEach(bullet => {
                 const li = document.createElement('li');
                 li.textContent = bullet;
                 ul.appendChild(li);
             });
 
-            // Show modal
             modal.style.display = 'flex';
-            setTimeout(() => modal.classList.add('show'), 10); // Trigger transition
+            setTimeout(() => modal.classList.add('show'), 10); 
         }
 
         function closeModal() {
             modal.classList.remove('show');
-            setTimeout(() => modal.style.display = 'none', 300); // Hide after transition
+            setTimeout(() => modal.style.display = 'none', 300); 
         }
 
-        // Close modal when clicking on the overlay
         modal.addEventListener('click', (event) => {
             if (event.target === modal) {
                 closeModal();
             }
         });
 
-        // Initialize the view
+        // Initialize
         renderGrid();
 
     </script>
